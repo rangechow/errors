@@ -87,6 +87,7 @@ func NewWithCode(errCode CodeErr, format string, args ...interface{}) error {
 	} else {
 		msg = format
 	}
+
 	return &err{
 		msg:  msg,
 		code: errCode,
@@ -101,7 +102,6 @@ func New(format string, args ...interface{}) error {
 // AppendWithCode is used to append error information and pass the information to the caller on a higher level.
 // Unlike Append, you can add error code.
 func AppendWithCode(errCode CodeErr, format string, args ...interface{}) error {
-
 	if len(args) == 0 {
 		return &err{
 			msg:  format,
@@ -131,7 +131,6 @@ func AppendWithCode(errCode CodeErr, format string, args ...interface{}) error {
 // Append is used to append error information and pass the information to the caller on a higher level.
 // If it is an err type, the code in it will be inherited.
 func Append(format string, args ...interface{}) error {
-
 	var errCode CodeErr = ERROR
 	if len(args) > 0 {
 		if e, ok := args[len(args)-1].(*err); ok {
@@ -152,6 +151,7 @@ func Is(e error, code CodeErr) bool {
 	return false
 }
 
+// Code returns an error code. If it is not err type, it returns None.
 func Code(e error) CodeErr {
 	if err, ok := e.(*err); ok {
 		return err.Code()
