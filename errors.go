@@ -134,7 +134,7 @@ func Append(format string, args ...interface{}) error {
 
 	var errCode CodeErr = ERROR
 	if len(args) > 0 {
-		if e, ok := args[len(args)-1].(err); ok {
+		if e, ok := args[len(args)-1].(*err); ok {
 			errCode = e.Code()
 		}
 	}
