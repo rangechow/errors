@@ -54,8 +54,7 @@ import (
 	"fmt"
 )
 
-// error code type
-type CodeErr int
+type CodeErr int // error code type
 
 // Here are some common error codes
 // you can define your own error code in your package
