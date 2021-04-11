@@ -1,4 +1,4 @@
-# errors [![Build Status](https://travis-ci.org/rangechow/errors.svg?branch=main)](https://travis-ci.org/rangechow/errors) [![Go Reference](https://pkg.go.dev/badge/github.com/rangechow/errors.svg)](https://pkg.go.dev/github.com/rangechow/errors)
+# errors [![Build Status](https://travis-ci.org/rangechow/errors.svg?branch=main)](https://travis-ci.org/rangechow/errors) [![Go Reference](https://pkg.go.dev/badge/github.com/rangechow/errors.svg)](https://pkg.go.dev/github.com/rangechow/errors) [![Go Report Card](https://goreportcard.com/badge/github.com/rangechow/errors)](https://goreportcard.com/report/github.com/rangechow/errors)
 Package errors provides error with error code.
 
 在golang中，我们一般使用的error是基于字符串的。
