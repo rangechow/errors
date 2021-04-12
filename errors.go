@@ -101,6 +101,7 @@ func New(format string, args ...interface{}) error {
 
 // AppendWithCode is used to append error information and pass the information to the caller on a higher level.
 // Unlike Append, you can add error code.
+// The new error code will overwrite the old one
 func AppendWithCode(errCode CodeErr, format string, args ...interface{}) error {
 	if len(args) == 0 {
 		return &err{
