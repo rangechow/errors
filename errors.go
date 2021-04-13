@@ -66,17 +66,17 @@ const (
 )
 
 // Err is an error that has a message and a code
-type Err struct {
+type err struct {
 	msg  string
 	code ErrCode
 }
 
-func (err *Err) Error() string {
-	return err.msg
+func (e *err) Error() string {
+	return e.msg
 }
 
-func (err *Err) Code() ErrCode {
-	return err.code
+func (e *err) Code() ErrCode {
+	return e.code
 }
 
 // NewWithCode returns an error with the supplied message and error code.
@@ -88,7 +88,7 @@ func NewWithCode(errCode ErrCode, format string, args ...interface{}) error {
 		msg = format
 	}
 
-	return &Err{
+	return &err{
 		msg:  msg,
 		code: errCode,
 	}
@@ -111,7 +111,7 @@ func AppendWithCode(e error, errCode ErrCode, format string, args ...interface{}
 	}
 	msg += fmt.Sprintf("|%v", e)
 
-	return &Err{
+	return &err{
 		msg:  msg,
 		code: errCode,
 	}
@@ -121,7 +121,7 @@ func AppendWithCode(e error, errCode ErrCode, format string, args ...interface{}
 // If it is an err type, the code in it will be inherited.
 func Append(e error, format string, args ...interface{}) error {
 	var errCode ErrCode = ERROR
-	if err, ok := e.(*Err); ok {
+	if err, ok := e.(*err); ok {
 		errCode = err.Code()
 	}
 	return AppendWithCode(e, errCode, format, args...)
@@ -130,7 +130,7 @@ func Append(e error, format string, args ...interface{}) error {
 // Is judges whether an error is a specific type of error by comparing the error code,
 // and then returns the bool value.
 func Is(e error, code ErrCode) bool {
-	if err, ok := e.(*Err); ok {
+	if err, ok := e.(*err); ok {
 		if err.Code() == code {
 			return true
 		}
@@ -140,7 +140,7 @@ func Is(e error, code ErrCode) bool {
 
 // Code returns an error code. If it is not err type, it returns None.
 func Code(e error) ErrCode {
-	if err, ok := e.(*Err); ok {
+	if err, ok := e.(*err); ok {
 		return err.Code()
 	}
 	return NONE
