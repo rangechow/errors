@@ -9,13 +9,13 @@ import (
 func TestNewWithCode(t *testing.T) {
 
 	const (
-		TESTERR CodeErr = iota
+		TESTERR ErrCode = iota
 	)
 
 	args := []interface{}{1, "2"}
 
 	tests := []struct {
-		code CodeErr
+		code ErrCode
 		err  string
 		args []interface{}
 		want error
@@ -89,7 +89,7 @@ func TestNew(t *testing.T) {
 func TestAppendWithCode(t *testing.T) {
 
 	const (
-		TESTERR CodeErr = iota
+		TESTERR ErrCode = iota
 	)
 
 	args := []interface{}{1, "2"}
@@ -98,38 +98,31 @@ func TestAppendWithCode(t *testing.T) {
 	var appendErr2 = NewWithCode(TESTERR, "bar")
 
 	tests := []struct {
-		code      CodeErr
+		code      ErrCode
 		err       string
 		args      []interface{}
 		appendErr error
 		want      error
 	}{
-		{ERROR, "", nil, nil, fmt.Errorf("")},
-		{ERROR, "foo", nil, nil, fmt.Errorf("foo")},
-		{ERROR, "foo", nil, nil, New("foo")},
+
 		{ERROR, "", nil, appendErr1, fmt.Errorf("|bar")},
 		{ERROR, "foo", nil, appendErr1, fmt.Errorf("foo|bar")},
 		{ERROR, "foo", nil, appendErr1, New("foo|bar")},
 		{ERROR, "foo", nil, appendErr1, NewWithCode(ERROR, "foo|bar")},
 		{TESTERR, "foo", nil, appendErr1, NewWithCode(ERROR, "foo|bar")},
 		{ERROR, "foo", nil, appendErr2, NewWithCode(ERROR, "foo|bar")},
-		{ERROR, "string with format specifiers: %v", nil, nil, errors.New("string with format specifiers: %v")},
 		{ERROR, "string with format specifiers: %v", nil, appendErr1, errors.New("string with format specifiers: %v|bar")},
 		{ERROR, "string with format specifiers: 1", nil, appendErr1, New("string with format specifiers: 1|bar")},
 		{ERROR, "string with format specifiers: 1", nil, appendErr1, NewWithCode(ERROR, "string with format specifiers: 1|bar")},
 		{TESTERR, "string with format specifiers: 1", nil, appendErr1, NewWithCode(ERROR, "string with format specifiers: 1|bar")},
 		{ERROR, "string with format specifiers: 1", nil, appendErr2, NewWithCode(ERROR, "string with format specifiers: 1|bar")},
 
-		{ERROR, "%d %s", args, nil, fmt.Errorf("1 2")},
-		{ERROR, "foo %d %s", args, nil, fmt.Errorf("foo 1 2")},
-		{ERROR, "foo %d %s", args, nil, New("foo 1 2")},
 		{ERROR, "%d %s", args, appendErr1, fmt.Errorf("1 2|bar")},
 		{ERROR, "foo %d %s", args, appendErr1, fmt.Errorf("foo 1 2|bar")},
 		{ERROR, "foo %d %s", args, appendErr1, New("foo 1 2|bar")},
 		{ERROR, "foo %d %s", args, appendErr1, NewWithCode(ERROR, "foo 1 2|bar")},
 		{TESTERR, "foo %d %s", args, appendErr1, NewWithCode(ERROR, "foo 1 2|bar")},
 		{ERROR, "foo %d %s", args, appendErr2, NewWithCode(ERROR, "foo 1 2|bar")},
-		{ERROR, "string with format specifiers: %d %s", args, nil, errors.New("string with format specifiers: 1 2")},
 		{ERROR, "string with format specifiers: %d %s", args, appendErr1, errors.New("string with format specifiers: 1 2|bar")},
 		{ERROR, "string with format specifiers: %d %s", args, appendErr1, New("string with format specifiers: 1 2|bar")},
 		{ERROR, "string with format specifiers: %d %s", args, appendErr1, NewWithCode(ERROR, "string with format specifiers: 1 2|bar")},
@@ -139,20 +132,12 @@ func TestAppendWithCode(t *testing.T) {
 
 	for _, tt := range tests {
 		var got error
-		if tt.appendErr != nil {
-			if tt.args != nil {
-				argsWithErr := append(tt.args, tt.appendErr)
-				got = AppendWithCode(tt.code, tt.err, argsWithErr...)
-			} else {
-				got = AppendWithCode(tt.code, tt.err, tt.appendErr)
-			}
+		if tt.args != nil {
+			got = AppendWithCode(tt.appendErr, tt.code, tt.err, tt.args...)
 		} else {
-			if tt.args != nil {
-				got = AppendWithCode(tt.code, tt.err, tt.args...)
-			} else {
-				got = AppendWithCode(tt.code, tt.err)
-			}
+			got = AppendWithCode(tt.appendErr, tt.code, tt.err)
 		}
+
 		if got.Error() != tt.want.Error() {
 			t.Errorf("AppendWithCode.Error(): got: %q, want %q", got, tt.want)
 		}
@@ -162,7 +147,7 @@ func TestAppendWithCode(t *testing.T) {
 func TestAppend(t *testing.T) {
 
 	const (
-		TESTERR CodeErr = iota
+		TESTERR ErrCode = iota
 	)
 
 	args := []interface{}{1, "2"}
@@ -176,29 +161,22 @@ func TestAppend(t *testing.T) {
 		appendErr error
 		want      error
 	}{
-		{"", nil, nil, fmt.Errorf("")},
-		{"foo", nil, nil, fmt.Errorf("foo")},
-		{"foo", nil, nil, New("foo")},
+
 		{"", nil, appendErr1, fmt.Errorf("|bar")},
 		{"foo", nil, appendErr1, fmt.Errorf("foo|bar")},
 		{"foo", nil, appendErr1, New("foo|bar")},
 		{"foo", nil, appendErr1, NewWithCode(ERROR, "foo|bar")},
 		{"foo", nil, appendErr2, NewWithCode(ERROR, "foo|bar")},
-		{"string with format specifiers: %v", nil, nil, errors.New("string with format specifiers: %v")},
 		{"string with format specifiers: %v", nil, appendErr1, errors.New("string with format specifiers: %v|bar")},
 		{"string with format specifiers: 1", nil, appendErr1, New("string with format specifiers: 1|bar")},
 		{"string with format specifiers: 1", nil, appendErr1, NewWithCode(ERROR, "string with format specifiers: 1|bar")},
 		{"string with format specifiers: 1", nil, appendErr2, NewWithCode(ERROR, "string with format specifiers: 1|bar")},
 
-		{"%d %s", args, nil, fmt.Errorf("1 2")},
-		{"foo %d %s", args, nil, fmt.Errorf("foo 1 2")},
-		{"foo %d %s", args, nil, New("foo 1 2")},
 		{"%d %s", args, appendErr1, fmt.Errorf("1 2|bar")},
 		{"foo %d %s", args, appendErr1, fmt.Errorf("foo 1 2|bar")},
 		{"foo %d %s", args, appendErr1, New("foo 1 2|bar")},
 		{"foo %d %s", args, appendErr1, NewWithCode(ERROR, "foo 1 2|bar")},
 		{"foo %d %s", args, appendErr2, NewWithCode(ERROR, "foo 1 2|bar")},
-		{"string with format specifiers: %d %s", args, nil, errors.New("string with format specifiers: 1 2")},
 		{"string with format specifiers: %d %s", args, appendErr1, errors.New("string with format specifiers: 1 2|bar")},
 		{"string with format specifiers: %d %s", args, appendErr1, New("string with format specifiers: 1 2|bar")},
 		{"string with format specifiers: %d %s", args, appendErr1, NewWithCode(ERROR, "string with format specifiers: 1 2|bar")},
@@ -207,20 +185,12 @@ func TestAppend(t *testing.T) {
 
 	for _, tt := range tests {
 		var got error
-		if tt.appendErr != nil {
-			if tt.args != nil {
-				argsWithErr := append(tt.args, tt.appendErr)
-				got = Append(tt.err, argsWithErr...)
-			} else {
-				got = Append(tt.err, tt.appendErr)
-			}
+		if tt.args != nil {
+			got = Append(tt.appendErr, tt.err, tt.args...)
 		} else {
-			if tt.args != nil {
-				got = Append(tt.err, tt.args...)
-			} else {
-				got = Append(tt.err)
-			}
+			got = Append(tt.appendErr, tt.err)
 		}
+
 		if got.Error() != tt.want.Error() {
 			t.Errorf("Append.Error(): got: %q, want %q", got, tt.want)
 		}
@@ -230,16 +200,16 @@ func TestAppend(t *testing.T) {
 func TestNewWithCodeIs(t *testing.T) {
 
 	const (
-		TESTERR CodeErr = iota
+		TESTERR ErrCode = iota
 	)
 
 	args := []interface{}{1, "2"}
 
 	tests := []struct {
-		code CodeErr
+		code ErrCode
 		err  string
 		args []interface{}
-		want CodeErr
+		want ErrCode
 	}{
 		{NONE, "", nil, NONE},
 		{ERROR, "foo", nil, ERROR},
@@ -271,7 +241,7 @@ func TestNewIs(t *testing.T) {
 	tests := []struct {
 		msg  string
 		args []interface{}
-		want CodeErr
+		want ErrCode
 	}{
 		{"", nil, ERROR},
 		{"foo", nil, ERROR},
@@ -297,7 +267,7 @@ func TestNewIs(t *testing.T) {
 func TestAppendWithCodeIs(t *testing.T) {
 
 	const (
-		TESTERR CodeErr = iota
+		TESTERR ErrCode = iota
 		TESTERRIN
 	)
 
@@ -307,11 +277,11 @@ func TestAppendWithCodeIs(t *testing.T) {
 	var appendErr2 = NewWithCode(TESTERRIN, "bar")
 
 	tests := []struct {
-		code      CodeErr
+		code      ErrCode
 		err       string
 		args      []interface{}
 		appendErr error
-		want      CodeErr
+		want      ErrCode
 	}{
 		{TESTERR, "", nil, nil, TESTERR},
 		{TESTERR, "foo", nil, nil, TESTERR},
@@ -331,20 +301,12 @@ func TestAppendWithCodeIs(t *testing.T) {
 
 	for _, tt := range tests {
 		var got error
-		if tt.appendErr != nil {
-			if tt.args != nil {
-				argsWithErr := append(tt.args, tt.appendErr)
-				got = AppendWithCode(tt.code, tt.err, argsWithErr...)
-			} else {
-				got = AppendWithCode(tt.code, tt.err, tt.appendErr)
-			}
+		if tt.args != nil {
+			got = AppendWithCode(tt.appendErr, tt.code, tt.err, tt.args...)
 		} else {
-			if tt.args != nil {
-				got = AppendWithCode(tt.code, tt.err, tt.args...)
-			} else {
-				got = AppendWithCode(tt.code, tt.err)
-			}
+			got = AppendWithCode(tt.appendErr, tt.code, tt.err)
 		}
+
 		if !Is(got, tt.want) {
 			t.Errorf("New.Error(): got: %d, want %d", Code(got), tt.want)
 		}
@@ -354,7 +316,7 @@ func TestAppendWithCodeIs(t *testing.T) {
 func TestAppendIs(t *testing.T) {
 
 	const (
-		TESTERR CodeErr = iota
+		TESTERR ErrCode = iota
 	)
 
 	args := []interface{}{1, "2"}
@@ -366,7 +328,7 @@ func TestAppendIs(t *testing.T) {
 		err       string
 		args      []interface{}
 		appendErr error
-		want      CodeErr
+		want      ErrCode
 	}{
 		{"", nil, nil, ERROR},
 		{"foo", nil, nil, ERROR},
@@ -388,20 +350,12 @@ func TestAppendIs(t *testing.T) {
 
 	for _, tt := range tests {
 		var got error
-		if tt.appendErr != nil {
-			if tt.args != nil {
-				argsWithErr := append(tt.args, tt.appendErr)
-				got = Append(tt.err, argsWithErr...)
-			} else {
-				got = Append(tt.err, tt.appendErr)
-			}
+		if tt.args != nil {
+			got = Append(tt.appendErr, tt.err, tt.args...)
 		} else {
-			if tt.args != nil {
-				got = Append(tt.err, tt.args...)
-			} else {
-				got = Append(tt.err)
-			}
+			got = Append(tt.appendErr, tt.err, tt.args)
 		}
+
 		if !Is(got, tt.want) {
 			t.Errorf("New.Error(): got: %d, want %d", Code(got), tt.want)
 		}

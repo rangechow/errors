@@ -55,32 +55,32 @@ import (
 )
 
 // CodeErr represents error code type
-type CodeErr int
+type ErrCode int
 
 // Here are some common error codes
 // you can define your own error code in your package
 const (
-	NONE CodeErr = iota
+	NONE ErrCode = iota
 	ERROR
 	UNFOUND
 )
 
-// err is an error that has a message and a code
-type err struct {
+// Err is an error that has a message and a code
+type Err struct {
 	msg  string
-	code CodeErr
+	code ErrCode
 }
 
-func (e *err) Error() string {
-	return e.msg
+func (err *Err) Error() string {
+	return err.msg
 }
 
-func (e *err) Code() CodeErr {
-	return e.code
+func (err *Err) Code() ErrCode {
+	return err.code
 }
 
 // NewWithCode returns an error with the supplied message and error code.
-func NewWithCode(errCode CodeErr, format string, args ...interface{}) error {
+func NewWithCode(errCode ErrCode, format string, args ...interface{}) error {
 	var msg string
 	if len(args) > 0 {
 		msg = fmt.Sprintf(format, args...)
@@ -88,7 +88,7 @@ func NewWithCode(errCode CodeErr, format string, args ...interface{}) error {
 		msg = format
 	}
 
-	return &err{
+	return &Err{
 		msg:  msg,
 		code: errCode,
 	}
@@ -102,28 +102,16 @@ func New(format string, args ...interface{}) error {
 // AppendWithCode is used to append error information and pass the information to the caller on a higher level.
 // Unlike Append, you can add error code.
 // The new error code will overwrite the old one
-func AppendWithCode(errCode CodeErr, format string, args ...interface{}) error {
-	if len(args) == 0 {
-		return &err{
-			msg:  format,
-			code: errCode,
-		}
-	}
-
+func AppendWithCode(e error, errCode ErrCode, format string, args ...interface{}) error {
 	var msg string
-	hasErr := false
-	if e, ok := args[len(args)-1].(error); ok {
-		format = format + fmt.Sprintf("|%v", e)
-		args = args[:len(args)-1]
-		hasErr = true
-	}
-	if hasErr && len(args) == 0 {
+	if len(args) == 0 {
 		msg = format
 	} else {
 		msg = fmt.Sprintf(format, args...)
 	}
+	msg += fmt.Sprintf("|%v", e)
 
-	return &err{
+	return &Err{
 		msg:  msg,
 		code: errCode,
 	}
@@ -131,20 +119,18 @@ func AppendWithCode(errCode CodeErr, format string, args ...interface{}) error {
 
 // Append is used to append error information and pass the information to the caller on a higher level.
 // If it is an err type, the code in it will be inherited.
-func Append(format string, args ...interface{}) error {
-	var errCode CodeErr = ERROR
-	if len(args) > 0 {
-		if e, ok := args[len(args)-1].(*err); ok {
-			errCode = e.Code()
-		}
+func Append(e error, format string, args ...interface{}) error {
+	var errCode ErrCode = ERROR
+	if err, ok := e.(*Err); ok {
+		errCode = err.Code()
 	}
-	return AppendWithCode(errCode, format, args...)
+	return AppendWithCode(e, errCode, format, args...)
 }
 
 // Is judges whether an error is a specific type of error by comparing the error code,
 // and then returns the bool value.
-func Is(e error, code CodeErr) bool {
-	if err, ok := e.(*err); ok {
+func Is(e error, code ErrCode) bool {
+	if err, ok := e.(*Err); ok {
 		if err.Code() == code {
 			return true
 		}
@@ -153,8 +139,8 @@ func Is(e error, code CodeErr) bool {
 }
 
 // Code returns an error code. If it is not err type, it returns None.
-func Code(e error) CodeErr {
-	if err, ok := e.(*err); ok {
+func Code(e error) ErrCode {
+	if err, ok := e.(*Err); ok {
 		return err.Code()
 	}
 	return NONE
